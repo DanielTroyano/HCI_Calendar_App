@@ -1,22 +1,24 @@
-import React from 'react';
 
 export default function EventList({ events, selectedDate }) {
-  const filtered = events.filter(e => e.date === selectedDate);
+  const filteredEvents = events.filter(e => e.date === selectedDate);
+
+  if (filteredEvents.length === 0) {
+    return (
+      <div className="empty-state">
+        No events scheduled for this date
+      </div>
+    );
+  }
 
   return (
-    <div className="event-list">
-      <h3>Events for {selectedDate || '...'}</h3>
-      {filtered.length === 0 ? (
-        <p>No events scheduled for this date</p>
-      ) : (
-        <ul>
-          {filtered.map((e, i) => (
-            <li key={i}>
-              <strong>{e.title}</strong> - {e.description}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <ul className="event-list">
+      {filteredEvents.map((event, index) => (
+        <li key={index} className="event-item">
+          <h3 className="event-title">{event.title}</h3>
+          {event.time && <p className="event-time">🕒 {event.time}</p>}
+          {event.description && <p className="event-desc">{event.description}</p>}
+        </li>
+      ))}
+    </ul>
   );
 }

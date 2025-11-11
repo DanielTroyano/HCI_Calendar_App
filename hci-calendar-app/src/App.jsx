@@ -16,14 +16,20 @@ function todayISO() {
 
 // format selected date to "month day, year" (easier to read)
 function formatDateLong(iso) {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString(undefined, { year: 'numeric', month: `long`, day: 'numeric' });
+  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+  const [y, m, d] = iso.split('-').map(Number);
+  // create local date (prevents 1-day shift from UTC)
+  const localDate = new Date(y, m - 1, d);
+  return localDate.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 }
 
 export default function App() {
   const [events, setEvents] = useState(() => loadEvents() ?? []);
-  const [selectedDate, setSelectedDate] = useState(todayISO()); // ✅ fixed extra useState()
+  const [selectedDate, setSelectedDate] = useState(todayISO());
   const [isModalOpen, setIsModalOpen] = useState(false);
   // keep track of which tab user is viewing
   const [tab, setTab] = useState(`calendar`);
@@ -93,7 +99,9 @@ export default function App() {
 
           {/*right section with events for selected date*/}
           <section className="card">
-            <h2 className="card-title">Events for {formatDateLong(selectedDate) ?? 'selected date'}</h2>
+            <h2 className="card-title">
+              Events for {formatDateLong(selectedDate) ?? 'selected date'}
+            </h2>
             <div className="card-body">
               <EventList events={events} selectedDate={selectedDate} />
             </div>

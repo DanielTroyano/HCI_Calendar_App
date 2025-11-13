@@ -1,37 +1,62 @@
 import React, { useState, useEffect } from 'react';
 
-// Modal to create an item: event, todo, or reminder
-export default function AddEventModal({ onClose, onCreate, defaultDate, defaultKind = 'event' }) {
+// Modal for creating OR editing an item
+export default function AddEventModal({
+  onClose,
+  onCreate,
+  onUpdate,
+  existingItem,
+  defaultDate,
+  defaultKind = 'event'
+}) {
+  const isEditing = !!existingItem;
+
   const [title, setTitle] = useState('');
   const [date, setDate] = useState(defaultDate || '');
   const [time, setTime] = useState('');
   const [description, setDescription] = useState('');
   const [kind, setKind] = useState(defaultKind);
-  // priority for the to-do list
-  const [priority, setPriority] = useState(`Medium`);
+  const [priority, setPriority] = useState('Medium');
 
+  // Pre-fill form when editing
   useEffect(() => {
-    if (defaultDate) setDate(defaultDate);
-  }, [defaultDate]);
-
-  useEffect(() => {
-    setKind(defaultKind);
-  }, [defaultKind]);
+    if (existingItem) {
+      setTitle(existingItem.title || '');
+      setDate(existingItem.date || defaultDate || '');
+      setTime(existingItem.time || '');
+      setDescription(existingItem.description || '');
+      setKind(existingItem.kind || defaultKind);
+      setPriority(existingItem.priority || 'Medium');
+    } else {
+      setTitle('');
+      setDate(defaultDate || '');
+      setTime('');
+      setDescription('');
+      setKind(defaultKind);
+      setPriority('Medium');
+    }
+  }, [existingItem, defaultDate, defaultKind]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title || !date) return;
+
     const item = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2,8)}`,
+      ...(existingItem || {}),
+      id: existingItem ? existingItem.id : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       kind,
       title,
       date,
       time: time || undefined,
-      description
+      description,
+      priority
     };
-    if (kind === 'todo') item.completed = false;
-    item.priority = priority;
-    onCreate(item);
+
+    if (kind === 'todo' && existingItem == null) item.completed = false;
+
+    if (isEditing) onUpdate(item);
+    else onCreate(item);
+
     onClose();
   };
 
@@ -45,9 +70,10 @@ export default function AddEventModal({ onClose, onCreate, defaultDate, defaultK
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Create {kindLabels[kind]}</h2>
+          <h2>{isEditing ? `Edit ${kindLabels[kind]}` : `Create ${kindLabels[kind]}`}</h2>
           <button className="modal-close" onClick={onClose} aria-label="Close">✕</button>
         </div>
+
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-group">
             <label>Type</label>
@@ -56,6 +82,7 @@ export default function AddEventModal({ onClose, onCreate, defaultDate, defaultK
                 type="button"
                 className={`kind-option ${kind === 'event' ? 'active' : ''}`}
                 onClick={() => setKind('event')}
+                disabled={isEditing} // lock kind while editing
               >
                 <span className="kind-icon">📅</span>
                 <span className="kind-label">Event</span>
@@ -64,6 +91,7 @@ export default function AddEventModal({ onClose, onCreate, defaultDate, defaultK
                 type="button"
                 className={`kind-option ${kind === 'todo' ? 'active' : ''}`}
                 onClick={() => setKind('todo')}
+                disabled={isEditing}
               >
                 <span className="kind-icon">📝</span>
                 <span className="kind-label">To-Do</span>
@@ -72,6 +100,7 @@ export default function AddEventModal({ onClose, onCreate, defaultDate, defaultK
                 type="button"
                 className={`kind-option ${kind === 'reminder' ? 'active' : ''}`}
                 onClick={() => setKind('reminder')}
+                disabled={isEditing}
               >
                 <span className="kind-icon">🔔</span>
                 <span className="kind-label">Reminder</span>
@@ -81,13 +110,8 @@ export default function AddEventModal({ onClose, onCreate, defaultDate, defaultK
 
           <div className="form-group">
             <label>Title</label>
-            <input 
-              value={title} 
-              onChange={(e) => setTitle(e.target.value)} 
-              required 
-              placeholder={`What's your ${kindLabels[kind].toLowerCase()}?`}
-              className="form-input"
-            />
+            <input value={title} onChange={(e) => setTitle(e.target.value)} required
+              placeholder={`What's your ${kindLabels[kind].toLowerCase()}?`}className="form-input"/>
           </div>
 
           <div className="form-row">
@@ -104,9 +128,9 @@ export default function AddEventModal({ onClose, onCreate, defaultDate, defaultK
 
           <div className="form-group">
             <label>Description (optional)</label>
-            <textarea 
-              value={description} 
-              onChange={(e) => setDescription(e.target.value)} 
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               placeholder="Add more details..."
               className="form-textarea"
               rows={3}
@@ -130,7 +154,9 @@ export default function AddEventModal({ onClose, onCreate, defaultDate, defaultK
 
           <div className="modal-actions">
             <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
-            <button type="submit" className="btn-submit">Create {kindLabels[kind]}</button>
+            <button type="submit" className="btn-submit">
+              {isEditing ? 'Save Changes' : `Create ${kindLabels[kind]}`}
+            </button>
           </div>
         </form>
       </div>

@@ -113,7 +113,10 @@ export default function Calendar({ selectedDate, onSelectDate, items = [] }) {
             {days.map((d, idx) => (
               <div
                 key={idx}
-                className={`day-cell ${d && formatISO(d) === selectedDate ? 'selected' : ''}`}
+                className={`day-cell 
+                  ${d && formatISO(d) === selectedDate ? 'selected' : ''} 
+                  ${d && formatISO(d) === formatISO(new Date()) ? 'today' : ''}
+                `}
                 onClick={() => d && onSelectDate(formatISO(d))}
               >
                 {d ? (

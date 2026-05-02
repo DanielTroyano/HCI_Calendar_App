@@ -40,4 +40,4 @@ npm run dev
 
 ## Team
 
-Created for Human Computer Interaction at Georgia Southern University by Daniel Troyano, Gabby Duartez, Wade Towns, and Collin Gray.
+Created for Human Computer Interaction at Georgia Southern University by Daniel Troyano, Gabby Duarte, Wade Towns, and Collin Gray.
